@@ -43,11 +43,11 @@ def cli_quiz(questions: list, cache: dict=None):
             if q[1] not in cache.keys():
                 cache[q[1]] = dict()
             if q[0] not in cache[q[1]].keys():
-                cache[q[1]][q[0]] = { "right": 0, "wrong": 0 }
+                cache[q[1]][q[0]] = 0
             if correct:
-                cache[q[1]][q[0]]["right"] += 1
+                cache[q[1]][q[0]] += 1
             else:
-                cache[q[1]][q[0]]["wrong"] += 1
+                cache[q[1]][q[0]] = 0
     try:
         total = 1
         while len(questions) > 0:
