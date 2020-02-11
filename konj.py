@@ -10,11 +10,15 @@ from argparse import ArgumentParser
 def pose_question(question: tuple, remaining="?") -> bool:
     q0, q1, s = question
     if "/" in q0:
-        options = q0.split("/")
-        i = randint(0,(len(options)-2))
-        q0 = options[i]
-        if "/" in s:
-            s = s.split("/")[i]
+        while True:
+            options = q0.split("/")
+            i = randint(0,(len(options)-2))
+            q0 = options[i]
+            if "/" in s:
+                s0 = s.split("/")[i]
+            if s != "":
+                s = s0
+                break
     answer = input("[{}] {}".format(
         remaining,
         q0+" "+30*"_"+" ({})".format(q1)+(len(q1)+32)*"\b"
