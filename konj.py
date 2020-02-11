@@ -112,6 +112,15 @@ def save_cache(cache):
         json.dump(cache, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
+def get_stats(questions, cache):
+    stats = dict()
+    for q0, q1, _ in questions:
+        score = cache.get(q1, dict()).get(q0, 0)
+        if score not in stats.keys():
+            stats[score] = 0
+        stats[score] += 1
+    return stats
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("filename", nargs="+")
@@ -133,11 +142,28 @@ if __name__ == "__main__":
              "do not start a quiz",
         action="store_true",
     )
+    parser.add_argument(
+        "-s", "--stats",
+        help="print stats for a given file (or files) and exit",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     questions = load_questions(args.filename)
     if args.verify:
         print("All files are correct.", file=sys.stderr)
+        exit(0)
+    if args.stats:
+        stats = get_stats(questions, load_cache())
+        scores = list(stats.keys())
+        scores.sort()
+        col1 = max(len("score"), len(str(max(stats.keys()))))
+        col2 = max(len("items"), len(str(max(stats.values()))))
+        frame = "  {:>"+str(col1)+"}  {:>"+str(col2)+"}"
+        print(frame.format("score", "items"))
+        print(frame.format(col1*"-", col2*"-"))
+        for s in scores:
+            print(frame.format(s, stats[s]))
         exit(0)
 
     cache = load_cache() if args.use_cache else None
