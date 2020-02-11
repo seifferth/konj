@@ -31,35 +31,35 @@ def pose_question(question: tuple, remaining="?") -> bool:
 
 def cli_quiz(questions: list, cache: dict=None):
     errors = list()
-    def ask(q):
+    def ask(q, points):
         """
         A wrapper around pose_question with side-effects.
         """
         r = len(questions) + len(errors) + 1
         correct = pose_question(q, remaining=r)
         if not correct:
-            errors.append(q)
+            errors.append((q, int(points%2)))
         if cache != None:
             if q[1] not in cache.keys():
                 cache[q[1]] = dict()
             if q[0] not in cache[q[1]].keys():
                 cache[q[1]][q[0]] = 0
             if correct:
-                cache[q[1]][q[0]] += 1
+                cache[q[1]][q[0]] += points
             else:
                 cache[q[1]][q[0]] = 0
     try:
         total = 1
         while len(questions) > 0:
-            ask(questions.pop())
+            ask(questions.pop(), 3)
             if total%10 == 0:
                 shuffle(errors)
                 for _ in range(len(errors)):
-                    ask(errors.pop(0))
+                    ask(*errors.pop(0))
             total += 1
         shuffle(errors)
         while errors:
-            ask(errors.pop(0))
+            ask(*errors.pop(0))
         return cache
     except (KeyboardInterrupt, EOFError):
         print()     # Ensure ending newline
