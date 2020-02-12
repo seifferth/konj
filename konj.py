@@ -4,21 +4,22 @@ import sys
 import os
 import csv
 import json
-from random import shuffle, randint
+from random import shuffle, choice
 from argparse import ArgumentParser
 
 def pose_question(question: tuple, remaining="?") -> bool:
     q0, q1, s = question
     if "/" in q0:
-        while True:
-            options = q0.split("/")
-            i = randint(0,(len(options)-2))
-            q0 = options[i]
-            if "/" in s:
-                s0 = s.split("/")[i]
-            if s != "":
-                s = s0
-                break
+        if "/" not in s:
+            q0 = choice(q0.split("/"))
+        else:
+            solutions = s.split("/")
+            shuffle(solutions)
+            while solutions[-1] == "": solutions.pop()
+            s0 = solutions[-1]
+            i = s.split("/").index(s0)
+            q0 = q0.split("/")[i]
+            s = s0
     answer = input("[{}] {}".format(
         remaining,
         q0+" "+30*"_"+" ({})".format(q1)+(len(q1)+32)*"\b"
