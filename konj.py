@@ -126,6 +126,33 @@ def get_stats(questions, cache):
         stats[score] += 1
     return stats
 
+def get_buckets(stats):
+    """
+    Figure out some way of dividing the input data into three
+    buckets. Returns a list of tuples (min_score, max_score)
+    that can be used to filter the data. The order of scores is
+    (low, medium, high), which means that the order of difficulty
+    is (high, medium, low).
+    """
+    lower_limit = min(stats.keys())
+    upper_limit = max(stats.keys())
+    total = sum(stats.values())
+    remaining = total
+    bucket_size = total/3
+    # Try filling buckets, starting from lowest one
+    i = lower_limit
+    while remaining > 2.5*bucket_size:
+        remaining -= stats.get(i, 0)
+        i += 1
+    b0 = (lower_limit, i)
+    lower_limit = i+1;
+    while remaining > 1.5*bucket_size:
+        remaining -= stats.get(i, 0)
+        i += 1
+    b1 = (lower_limit, i)
+    b2 = (i+1, upper_limit)
+    return (b0, b1, b2)
+
 def filter_questions(questions, min_score=None, max_score=None):
     if min_score != None:
         questions = list(filter(
@@ -138,6 +165,19 @@ def filter_questions(questions, min_score=None, max_score=None):
             questions
         ))
     return questions
+
+def print_table(table: list):
+    """
+    Print a 2-column table. All cells must be strings.
+    """
+    col1 = max(map(lambda row: len(row[0]), table))
+    col2 = max(map(lambda row: len(row[1]), table))
+    frame = "  {:>"+str(col1)+"}  {:>"+str(col2)+"}"
+    left, right = table.pop(0)
+    print(frame.format(left, right))
+    print(frame.format(col1*"-", col2*"-"))
+    for left, right in table:
+        print(frame.format(left, right))
 
 
 if __name__ == "__main__":
@@ -167,6 +207,11 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
+        "--buckets",
+        help="print stats for buckets",
+        action="store_true",
+    )
+    parser.add_argument(
         "-f", "--from",
         help="define the lowest score of items to be included",
         type=int,
@@ -175,6 +220,11 @@ if __name__ == "__main__":
         "-t", "--to",
         help="define the highest score of items to be included",
         type=int,
+    )
+    parser.add_argument(
+        "-d", "--difficulty",
+        choices=["low", "medium", "high"],
+        type=str,
     )
     args = parser.parse_args()
 
@@ -189,21 +239,48 @@ if __name__ == "__main__":
         min_score = args.__dict__["from"],
         max_score = args.__dict__["to"],
     )
+    stats = get_stats(questions, cache)
+    if args.difficulty or args.buckets:
+        b0, b1, b2 = get_buckets(stats)
+        q0 = filter_questions(questions, min_score=b0[0], max_score=b0[1])
+        q1 = filter_questions(questions, min_score=b1[0], max_score=b1[1])
+        q2 = filter_questions(questions, min_score=b2[0], max_score=b2[1])
 
     if args.stats:
-        stats = get_stats(questions, cache)
         scores = list(stats.keys())
         scores.sort()
-        col1 = max(len("score"), len(str(max(stats.keys()))))
-        col2 = max(len("items"), len(str(max(stats.values()))))
-        frame = "  {:>"+str(col1)+"}  {:>"+str(col2)+"}"
-        print(frame.format("score", "items"))
-        print(frame.format(col1*"-", col2*"-"))
+        table = list()
+        table.append(["score", "items"])
         for s in scores:
-            print(frame.format(s, stats[s]))
+            table.append([str(s), str(stats[s])])
+        print_table(table)
+        if args.buckets:
+            print()
+    if args.buckets:
+        print_table([
+            ["difficulty", "items"],
+            ["high", str(len(q0))],
+            ["medium", str(len(q1))],
+            ["low", str(len(q2))],
+        ])
+    if args.buckets or args.stats:
         exit(0)
 
-    shuffle(questions)
+    if args.difficulty:
+        shuffle(q0); shuffle(q1); shuffle(q2)
+        if args.difficulty == "low":
+            order = (q2, q1, q0)
+        elif args.difficulty == "medium":
+            order = (q1, q0, q2)
+        elif args.difficulty == "high":
+            order = (q0, q1, q2)
+        questions = list()
+        for bucket in order:
+            questions.extend(bucket)
+            questions.extend(bucket)
+            questions.extend(bucket)
+    else:
+        shuffle(questions)
     if args.number >= 0:
         questions = questions[:args.number]
     cache = cli_quiz(questions, cache=cache)
