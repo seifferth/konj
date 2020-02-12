@@ -151,14 +151,27 @@ if __name__ == "__main__":
         help="print stats for a given file (or files) and exit",
         action="store_true",
     )
+    parser.add_argument(
+        "-f", "--from",
+        help="define the lowest score of items to be included",
+        type=int,
+    )
+    parser.add_argument(
+        "-t", "--to",
+        help="define the highest score of items to be included",
+        type=int,
+    )
     args = parser.parse_args()
 
     questions = load_questions(args.filename)
     if args.verify:
         print("All files are correct.", file=sys.stderr)
         exit(0)
+
+    cache = load_cache()
+
     if args.stats:
-        stats = get_stats(questions, load_cache())
+        stats = get_stats(questions, cache)
         scores = list(stats.keys())
         scores.sort()
         col1 = max(len("score"), len(str(max(stats.keys()))))
@@ -170,7 +183,18 @@ if __name__ == "__main__":
             print(frame.format(s, stats[s]))
         exit(0)
 
-    cache = load_cache() if args.use_cache else None
+    if args.__dict__["from"] != None:
+        f = args.__dict__["from"]
+        questions = list(filter(
+            lambda x: cache.get(x[1], dict()).get(x[0], 0) >= f,
+            questions,
+        ))
+    if args.to != None:
+        questions = list(filter(
+            lambda x: cache.get(x[1], dict()).get(x[0], 0) <= args.to,
+            questions
+        ))
+
     shuffle(questions)
     if args.number >= 0:
         questions = questions[:args.number]
