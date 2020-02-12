@@ -126,6 +126,20 @@ def get_stats(questions, cache):
         stats[score] += 1
     return stats
 
+def filter_questions(questions, min_score=None, max_score=None):
+    if min_score != None:
+        questions = list(filter(
+            lambda x: cache.get(x[1], dict()).get(x[0], 0) >= min_score,
+            questions,
+        ))
+    if max_score != None:
+        questions = list(filter(
+            lambda x: cache.get(x[1], dict()).get(x[0], 0) <= max_score,
+            questions
+        ))
+    return questions
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("filename", nargs="+")
@@ -170,6 +184,11 @@ if __name__ == "__main__":
         exit(0)
 
     cache = load_cache()
+    questions = filter_questions(
+        questions,
+        min_score = args.__dict__["from"],
+        max_score = args.__dict__["to"],
+    )
 
     if args.stats:
         stats = get_stats(questions, cache)
@@ -183,18 +202,6 @@ if __name__ == "__main__":
         for s in scores:
             print(frame.format(s, stats[s]))
         exit(0)
-
-    if args.__dict__["from"] != None:
-        f = args.__dict__["from"]
-        questions = list(filter(
-            lambda x: cache.get(x[1], dict()).get(x[0], 0) >= f,
-            questions,
-        ))
-    if args.to != None:
-        questions = list(filter(
-            lambda x: cache.get(x[1], dict()).get(x[0], 0) <= args.to,
-            questions
-        ))
 
     shuffle(questions)
     if args.number >= 0:
