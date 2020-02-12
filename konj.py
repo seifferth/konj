@@ -141,12 +141,12 @@ def get_buckets(stats):
     bucket_size = total/3
     # Try filling buckets, starting from lowest one
     i = lower_limit
-    while remaining > 2.5*bucket_size:
+    while remaining > 2.3*bucket_size:
         remaining -= stats.get(i, 0)
         i += 1
     b0 = (lower_limit, i)
     lower_limit = i+1;
-    while remaining > 1.5*bucket_size:
+    while remaining > 1.1*bucket_size:
         remaining -= stats.get(i, 0)
         i += 1
     b1 = (lower_limit, i)
