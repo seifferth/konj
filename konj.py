@@ -116,6 +116,7 @@ def save_cache(cache):
     with open(cache_filename, "w") as f:
         json.dump(cache, f, indent=2, ensure_ascii=False)
         f.write("\n")
+    print("Cache written to \"{}\"".format(cache_filename))
 
 def get_stats(questions, cache):
     stats = dict()
