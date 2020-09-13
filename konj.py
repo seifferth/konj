@@ -4,6 +4,7 @@ import sys
 import os
 import csv
 import json
+import readline
 from random import shuffle, choice
 from argparse import ArgumentParser
 
@@ -20,10 +21,7 @@ def pose_question(question: tuple, remaining="?") -> bool:
             i = s.split("/").index(s0)
             q0 = q0.split("/")[i]
             s = s0
-    answer = input("[{}] {}".format(
-        remaining,
-        q0+" "+30*"_"+" ({})".format(q1)+(len(q1)+32)*"\b"
-    ))
+    answer = input("[{}] ({}) {} ".format(remaining, q1, q0)).strip()
     if answer == "":
         print("Correct answer: \"{}\"".format(s))
         return False
