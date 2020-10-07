@@ -26,7 +26,7 @@ def pose_question(question: tuple, remaining="?") -> bool:
         print("Correct answer: \"{}\"".format(s))
         return False
     elif answer.lower() != s.lower():
-        answer = input("Try again: ").strip()
+        answer = input("Try again: {} ".format(q0)).strip()
         if answer.lower() != s.lower():
             print("Correct answer: \"{}\"".format(s))
         return False
@@ -77,9 +77,9 @@ def load_questions(filenames: list):
                 line,
                 column,
             ),
-            "Expected {} backslash{} but found {}.".format(
+            "Expected {} slash{} but found {}.".format(
                 expected,
-                "es" if expected > 1 else "",
+                "" if expected == 1 else "es",
                 existing,
             ),
             sep="\n",
