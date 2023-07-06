@@ -3,7 +3,6 @@
 import sys
 import os
 import csv
-import json
 import readline
 from random import shuffle, choice
 from argparse import ArgumentParser
@@ -104,16 +103,30 @@ def load_questions(filenames: list):
 
 cache_filename = "konj.cache"
 def load_cache() -> dict:
+    cache = dict()
     if os.path.isfile(cache_filename):
         with open(cache_filename) as f:
-            cache = json.load(f)
-    else:
-        cache = dict()
+            r = csv.reader(f, dialect="unix")
+            header = next(r)
+            if header != ['row','col','score']:
+                print(f'Unexpected csv header in "{cache_filename}"',
+                      file=sys.stderr)
+                exit(1)
+            for row, col, score in r:
+                if row not in cache: cache[row] = dict()
+                if col not in cache[row]: cache[row][col] = dict()
+                cache[row][col] = int(score)
     return cache
 def save_cache(cache):
-    with open(cache_filename, "w") as f:
-        json.dump(cache, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    rows = [['row','col','score']]
+    for row in cache:
+        for col in cache[row]:
+            score = cache[row][col]
+            rows.append([row,col,score])
+    with open(cache_filename, 'w') as f:
+        w = csv.writer(f, dialect='unix', lineterminator='\n',
+                          quoting=csv.QUOTE_MINIMAL)
+        w.writerows(rows)
     print("Cache written to \"{}\"".format(cache_filename))
 
 def get_stats(questions, cache):
