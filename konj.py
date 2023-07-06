@@ -3,6 +3,7 @@
 import sys
 import os
 import csv
+import gzip
 import readline
 from random import shuffle, choice
 from argparse import ArgumentParser
@@ -101,11 +102,11 @@ def load_questions(filenames: list):
                     questions.append((header[i],line[0],line[i]))
     return questions
 
-cache_filename = "konj.cache"
+cache_filename = "konj.cache.gz"
 def load_cache() -> dict:
     cache = dict()
     if os.path.isfile(cache_filename):
-        with open(cache_filename) as f:
+        with gzip.open(cache_filename, 'rt') as f:
             r = csv.reader(f, dialect="unix")
             header = next(r)
             if header != ['row','col','score']:
@@ -123,7 +124,7 @@ def save_cache(cache):
         for col in cache[row]:
             score = cache[row][col]
             rows.append([row,col,score])
-    with open(cache_filename, 'w') as f:
+    with gzip.open(cache_filename, 'wt') as f:
         w = csv.writer(f, dialect='unix', lineterminator='\n',
                           quoting=csv.QUOTE_MINIMAL)
         w.writerows(rows)
